@@ -22,7 +22,7 @@ endif
 " vim-scripts repos
 Bundle 'L9'
 Bundle 'FuzzyFinder'
-Bundle 'VimIM'
+"Bundle 'VimIM'
 
 "Bundle 'minibufexplorerpp'
 Bundle 'bufexplorer.zip'
@@ -85,8 +85,8 @@ let g:miniBufExplMapCTabSwitchBufs = 1
 let g:miniBufExplModSelTarget = 1
 
 " set proxy
-let $http_proxy="proxy.zte.com.cn:80"
-let $https_proxy="proxy.zte.com.cn:80"
+let $http_proxy="proxymsn.zte.com.cn:80"
+let $https_proxy="proxymsn.zte.com.cn:80"
 
 " powerline
 let g:Powerline_symbols = 'fancy'

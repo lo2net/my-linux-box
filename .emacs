@@ -1,9 +1,11 @@
 ;;------------------------------------------------------------------------------
 (setq debug-on-error t)
-(setq gc-cons-threshold 20000000)
+(setq gc-cons-threshold 300000000)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file 'noerror)
+
+;;(load "~/.gnus.el" 'noerror)
 
 ;; server
 (server-start)
@@ -17,14 +19,16 @@
                              ("http" . "proxy.zte.com.cn:80")
                              ("https" . "proxy.zte.com.cn:80")))
 
-  ;; (when window-system
-  ;;   (set-frame-font "Dejavu Sans Mono-10")
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'symbol '("Arial Unicode MS" . "unicode-bmp")))
+  (when window-system
+    (set-face-attribute 'default nil :font "Consolas 12")
+    (dolist (charset '(kana han symbol cjk-misc bopomofo))
+      (set-fontset-font (frame-parameter nil 'font)
+                        charset
+                        (font-spec :family "微软雅黑" :size 15))))
 
   ;; git
   (setenv "GIT_AUTHOR_NAME" "方涛10034491")
-  (setenv "GIT_AUTHOR_EMAIL" "10034491@zte.com.cn")
+  (setenv "GIT_AUTHOR_EMAIL" "fang.tao@zte.com.cn")
   (setenv "GIT_COMMITTER_NAME" (getenv "GIT_AUTHOR_NAME"))
   (setenv "GIT_COMMITTER_EMAIL" (getenv "GIT_AUTHOR_EMAIL"))
 
@@ -36,24 +40,8 @@
   )
 
 (when (eq system-type 'gnu/linux)
-  ;; (when window-system
-  ;;   (set-frame-font "Bitstream Vera Sans Mono-10")
-  ;;   ;; see fontset.el
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'ascii '("Bitstream Vera Sans Mono" . "unicode-bmp"))
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'han '("WenQuanYi Bitmap Song" . "unicode-bmp"))
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'symbol '("WenQuanYi Bitmap Song" . "unicode-bmp"))
-  ;;   ;; cjk
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'cjk-misc '("WenQuanYi Bitmap Song" . "unicode-bmp"))
-  ;;   ;; japanese
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'kana '("IPAMonaPGothic" . "unicode-bmp"))
-  ;;   ;; korea
-  ;;   (set-fontset-font (frame-parameter nil 'font)
-  ;;                     'hangul '("UnDotum" . "unicode-bmp")))
+
+  (set-face-attribute 'default nil :font "DejaVu Sans YuanTi Mono 11")
 
   ;; git
   (setenv "GIT_AUTHOR_NAME" "Tao Fang")
@@ -111,8 +99,7 @@
  icon-title-format frame-title-format
  ;; dired settings
  dired-recursive-copies t
- dired-recursive-deletes t
- )
+ dired-recursive-deletes t)
 
 ;; menu toolbar scrollbar
 (menu-bar-mode 0)
@@ -174,13 +161,11 @@
           (lambda ()
             (when (derived-mode-p 'c-mode 'c++-mode)
               (modify-syntax-entry ?_ "w" c-mode-syntax-table)
-              (modify-syntax-entry ?_ "w" c++-mode-syntax-table))
-            ))
+              (modify-syntax-entry ?_ "w" c++-mode-syntax-table))))
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()
             (modify-syntax-entry ?_ "w" emacs-lisp-mode-syntax-table)
-            (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table)
-            ))
+            (modify-syntax-entry ?- "w" emacs-lisp-mode-syntax-table)))
 ;; bookmark C-x r m/C-x r b/list-bookmarks
 (setq bookmark-save-flag 1)
 
@@ -240,8 +225,7 @@
                      len (if (= len 1) " has" "s have"))))
     (call-process "bcomp.exe" nil nil nil
                   (uniquify-buffer-file-name (car marked-buffers))
-                  (uniquify-buffer-file-name (cadr marked-buffers)))
-    ))
+                  (uniquify-buffer-file-name (cadr marked-buffers)))))
 (setq ibuffer-saved-filter-groups
       '(("home"
          ("magit" (name . "\*magit"))
@@ -277,8 +261,7 @@
             (setq ibuffer-show-empty-filter-groups nil)
             (hl-line-mode t)
             (ibuffer-switch-to-saved-filter-groups "home")
-            (ibuffer-auto-mode 1)
-            ))
+            (ibuffer-auto-mode 1)))
 (defun dired-ediff-marked-buffers ()
   (interactive)
   (let* ((marked-buffers (dired-get-marked-files))
@@ -293,8 +276,10 @@
             (define-key dired-mode-map (kbd "C-o") (lambda () (interactive) (switch-to-buffer nil)))
             (define-key dired-mode-map [f2] 'wdired-change-to-wdired-mode)
             ;; absolute path copy
-            (define-key dired-mode-map (kbd "W") (lambda () (interactive) (dired-copy-filename-as-kill 0)))
-            ))
+            (define-key dired-mode-map (kbd "W") (lambda () (interactive)
+                                                   (message "%s"
+                                                            (kill-new (replace-regexp-in-string "/" "\\\\"
+                                                                                                (dired-copy-filename-as-kill 0))))))))
 ;; wdired
 (require 'wdired)
 (add-hook 'wdired-mode-hook
@@ -308,7 +293,15 @@
     (c-basic-offset . 4)
     (c-comment-only-line-offset . 0)
     (c-hanging-braces-alist . ((substatement-open after)
-                               (brace-list-open)))
+                               (defun-open after)
+                               (class-open after)
+                               (inline-open after)
+                               (block-open after)
+                               (brace-list-open )
+                               (brace-list-close )
+                               (statement-case-open after)
+                               (namespace-open after)
+                               ))
     (c-hanging-colons-alist . ((member-init-intro before)
                                (inher-intro)
                                (case-label after)
@@ -318,6 +311,7 @@
                        empty-defun-braces
                        defun-close-semi))
     (c-offsets-alist . ((arglist-close . c-lineup-arglist)
+                        (access-label . -)
                         (substatement-open . 0)
                         (case-label . 4)
                         (block-open . 0)
@@ -328,10 +322,8 @@
                         (friend -)
                         (substatement-open 0)
                         (arglist-intro +)
-                        (member-init-intro . ++)
-                        ))
-    (c-echo-syntactic-information-p . t)
-    )
+                        (member-init-intro . ++)))
+    (c-echo-syntactic-information-p . t))
   "My C programming style")
 (add-hook 'c-mode-common-hook
           (lambda ()
@@ -339,8 +331,7 @@
             (c-add-style "PERSONAL" my-c-style t)
             ;; we will like auto-newline and hungry-delete
             (c-toggle-auto-hungry-state 1)
-            (define-key c-mode-base-map (kbd "C-m") 'c-context-line-break)
-            ))
+            (define-key c-mode-base-map (kbd "C-m") 'c-context-line-break)))
 ;; hideshow
 (require 'hideshow)
 (add-hook 'prog-mode-hook
@@ -425,8 +416,7 @@
                    (remove-hook 'window-configuration-change-hook 'erc-bar-update-overlay)
                    (add-hook 'window-configuration-change-hook 'erc-bar-update-overlay))
                  (add-hook 'erc-send-completed-hook (lambda (str)
-                                                      (erc-bar-update-overlay)))
-                 ))))
+                                                      (erc-bar-update-overlay)))))))
 ;;------------------------------------------------------------------------------
 
 ;;------------------------------------------------------------------------------
@@ -438,11 +428,6 @@
   (add-to-list 'load-path "~/MyEmacs/Extensions/asn1-mode")
   (autoload 'asn1-mode "asn1-mode" "Major mode for editing ASN.1 specifications." t)
   (add-to-list 'auto-mode-alist '("\\.[Aa][Ss][Nn]1?$" . asn1-mode))
-
-  ;; No Gnus
-  (add-to-list 'load-path "~/MyEmacs/Extensions/gnus/lisp")
-  (add-to-list 'Info-default-directory-list "~/MyEmacs/Extensions/gnus/texi/")
-  (require 'gnus-load)
 
   ;; ;; Sina weibo
   ;; (add-to-list 'load-path "~/MyEmacs/Extensions/weibo.emacs/")
@@ -475,9 +460,7 @@
               (define-key gud-mode-map (kbd "S-<f11>") 'gud-finish)
               (define-key gud-mode-map (kbd "<f9>") 'gud-break)))
   ;; mpg123
-  (require 'mpg123)
-
-  )
+  (require 'mpg123))
 ;;------------------------------------------------------------------------------
 
 ;;------------------------------------------------------------------------------
@@ -486,22 +469,33 @@
 ;;
 (require 'package)
 (setq package-user-dir "~/MyEmacs/elpa")
-(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-(add-to-list 'package-archives '("ELPA" . "http://tromey.com/elpa/"))
+;;(add-to-list 'package-archives '("ELPA" . "http://tromey.com/elpa/"))
 ;;(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-(add-to-list 'package-archives '("melpa" . "http://melpa.milkbox.net/packages/"))
-(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+;;(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+;;(add-to-list 'package-archives '("org" . "http://orgmode.org/elpa/") t)
+;; mirror: http://emacs-china.org/
+;;(add-to-list 'package-archives '("ELPA" . "http://elpa.zilongshanren.com/gnu/"))
+;;(add-to-list 'package-archives '("Marmalade" . "http://elpa.zilongshanren.com/marmalade/"))
+;;(add-to-list 'package-archives '("MELPA" . "http://elpa.zilongshanren.com/melpa/"))
+;;(add-to-list 'package-archives '("MELPA-stable" . "http://elpa.zilongshanren.com/melpa-stable"))
+;;(add-to-list 'package-archives '("Org" . "http://elpa.zilongshanren.com/org/"))
+;; https://mirrors.tuna.tsinghua.edu.cn/elpa/
+(add-to-list 'package-archives '("ELPA" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/"))
+(add-to-list 'package-archives '("Marmalade" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/marmalade/"))
+(add-to-list 'package-archives '("MELPA" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/"))
+;;(add-to-list 'package-archives '("MELPA-stable" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/melpa-stable/"))
+(add-to-list 'package-archives '("Org" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/org/"))
 (package-initialize)
 
 ;; use-package
 (require 'use-package)
 
-(setq use-package-always-ensure t)
+;;(setq use-package-always-ensure t)
 
 ;; chinese-font-setup
-(use-package chinese-fonts-setup
-  :config (setq cfs-profiles
-                '("program" "org-mode" "read-book")))
+;; (use-package chinese-fonts-setup
+;;  :config (setq cfs-profiles
+;;                '("program" "org-mode" "read-book")))
 
 ;; paradox
 (use-package paradox
@@ -510,12 +504,14 @@
                 paradox-automatically-star t))
 
 ;; paredit
-(use-package paredit)
+;; (use-package paredit
+;;   :config (add-hook 'prog-mode-hook 'enable-paredit-mode))
 
 ;; magit
-(use-package magit)
+(use-package magit
+  :config (magit-auto-revert-mode -1))
 
-;; git gutter fringer
+;; git gutter fringe
 (use-package git-gutter-fringe)
 
 ;; psvn
@@ -574,8 +570,8 @@
   :config (setq smooth-scroll-margin 3))
 
 ;; yascroll
-(use-package yascroll
-  :config (global-yascroll-bar-mode))
+;;(use-package yascroll
+;;  :config (global-yascroll-bar-mode))
 
 ;; back button
 (use-package back-button
@@ -587,8 +583,22 @@
 (use-package dired-filter)
 
 ;; color-theme
-(use-package material-theme
-  :config (load-theme 'material t))
+;; (use-package material-theme
+;;   :config (load-theme 'material t))
+
+;; moe-theme
+;; (use-package moe-theme
+;;   :config (progn (setq moe-theme-highlight-buffer-id nil
+;;                        moe-theme-resize-markdown-title '(1.5 1.4 1.3 1.2 1.0 1.0)
+;;                        moe-theme-resize-org-title '(1.5 1.4 1.3 1.2 1.1 1.0 1.0 1.0 1.0)
+;;                        moe-theme-resize-rst-title '(1.5 1.4 1.3 1.2 1.1 1.0))
+;;                  (moe-theme-set-color 'w/b)
+;;                  (moe-dark))
+;;   :after powerline)
+
+;; monokai
+(use-package monokai-theme
+ :config (load-theme 'monokai))
 
 ;; browse-kill-ring
 (use-package browse-kill-ring
@@ -605,8 +615,7 @@
                                                   ;; :background "snow4"
                                                   ;; :bold
                                                   ;; :weight nil
-                                                  :inverse-video t
-                                                                 ))))))
+                                                  :inverse-video t))))))
 
 ;; nyan-cat
 (use-package nyan-prompt
@@ -614,6 +623,11 @@
 
 ;; nyan-mode
 (use-package nyan-mode)
+
+;; neotree
+(use-package neotree
+  :bind ("<f8>" . neotree-toggle)
+  :init (setq neo-theme 'icons))
 
 ;; rainbow
 (use-package rainbow-mode)
@@ -665,8 +679,7 @@
   ;; xscope+
   (require 'xcscope+)
   (setq cscope-database-file "d:/U31_svn/U31_E2E/trunk/cscope.out")
-  (cscope-set-initial-directory "d:/U31_svn/U31_E2E/trunk")
-  )
+  (cscope-set-initial-directory "d:/U31_svn/U31_E2E/trunk"))
 
 ;; ggtags
 (use-package ggtags
@@ -674,7 +687,22 @@
   :config (add-hook 'c-mode-common-hook (lambda()
                                           (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
                                             (ggtags-mode 1)))))
+;; modern-cpp-font-lock
+(use-package modern-cpp-font-lock
+  :config (modern-c++-font-lock-global-mode t))
 
+;; quickrun
+(use-package quickrun
+  :bind (("<f9>" . quickrun)))
+
+;; ac-clang
+;; (use-package ac-clang
+;;   :init (when (eq system-type 'windows-nt)
+;;           (setq w32-pipe-read-delay 0))
+;;   :config (when (ac-clang-initialize)
+;;             (add-hook 'c-mode-common-hook '(lambda ()
+;;                                              ;;(setq ac-clang-cflags "-ID:/msys64/mingw64/include/c++/6.2.0")
+;;                                              (ac-clang-activate-after-modify)))))
 ;; eval-sexp-fu
 (use-package eval-sexp-fu
   :config (progn (setq eval-sexp-fu-flash-duration 0.4)
@@ -686,9 +714,9 @@
                             ("C-c C-e" 'eval-sexp-fu-eval-sexp-inner-sexp))))
 
 ;; FIXME TODO BUG KLUDGE
-(use-package fic-mode
-  :diminish fic-mode
-  :config (add-hook 'prog-mode-hook 'turn-on-fic-mode))
+;;(use-package fic-mode
+;;  :diminish fic-mode
+;;  :config (add-hook 'prog-mode-hook 'fic-mode))
 
 ;; haskell
 (use-package ghc
@@ -699,9 +727,8 @@
                                            (flycheck-mode)
                                            (setq haskell-interactive-popup-errors nil)
                                            (turn-on-haskell-doc-mode)
-                                           (turn-on-haskell-indentation)
-                                           (interactive-haskell-mode)
-                                           ))))
+                                           ;;(turn-on-haskell-indentation)
+                                           (interactive-haskell-mode)))))
 (use-package ghci-completion)
 
 ;; ac
@@ -710,10 +737,21 @@
 
 ;; shm
 (use-package shm
-  :config (add-hook 'haskell-mode-hook 'structured-haskell-mode))
+  :config (add-hook 'haskell-mode-hook 'structured-haskell-mode)
+  (setq haskell-interactive-prompt2 "^| ")
+  (set-face-background 'shm-current-face "dark slate blue")
+  (set-face-background 'shm-quarantine-face "red"))
+
+;; hindent
+(use-package hindent
+  :config (add-hook 'haskell-mode-hook 'hindent-mode))
 
 ;; flycheck-haskell
 (use-package flycheck-haskell)
+
+;; intero
+;; (use-package intero
+;;   :config (add-hook 'haskell-mode-hook 'intero-mode))
 
 ;; yasnippet
 (use-package yasnippet
@@ -721,8 +759,7 @@
   :config (yas-global-mode 1)
   :config (progn
             (use-package dropdown-list)
-            (setq yas-prompt-functions '(yas-dropdown-prompt))
-            ))
+            (setq yas-prompt-functions '(yas-dropdown-prompt))))
 
 ;; header2
 (use-package header2
@@ -745,13 +782,34 @@
                                           header-blank))))
 
 ;; modify mode-line
+;; (use-package powerline
+;;   :config (progn
+;;             (setq powerline-default-separator 'arrow)
+;;             (powerline-default-theme)
+;;             ;; get coloring of arrows correct
+;;             ;;(add-hook 'window-setup-hook 'powerline-reset)
+;;             ))
 (use-package powerline
-  :config (progn
-            (setq powerline-default-separator 'arrow)
-            (powerline-default-theme)
-            ;; get coloring of arrows correct
-            ;;(add-hook 'window-setup-hook 'powerline-reset)
-            ))
+  :if window-system
+  :config
+  (setq-default powerline-default-separator 'nil)
+  )
+;; spaceline
+(use-package spaceline :after powerline :ensure t
+  :config
+  (set-face-background 'spaceline-highlight-face "DarkGoldenrod4"))
+;; yahoo-weather
+(use-package yahoo-weather
+  :config (setq yahoo-weather-location "深圳")
+  (yahoo-weather-mode t))
+;; all-the-icons
+(use-package all-the-icons)
+;; spaceline-all-the-icons
+(use-package spaceline-all-the-icons
+  :after spaceline
+  :config
+  (setq spaceline-all-the-icons-separator-type 'none)
+  (spaceline-all-the-icons-theme))
 
 ;; highlight-symbol
 (use-package highlight-symbol
@@ -817,8 +875,7 @@
                  (global-set-key (kbd "C-x b") 'helm-mini)
                  (setq helm-buffers-fuzzy-matching t
                        helm-recentf-fuzzy-match    t)
-                 (global-set-key (kbd "C-x C-f") 'helm-find-files)
-                 ))
+                 (global-set-key (kbd "C-x C-f") 'helm-find-files)))
 
 (use-package helm-flx
   :config (helm-flx-mode +1))
@@ -866,8 +923,7 @@
 
 ;; swiper-helm
 (use-package swiper-helm
-  :bind ("M-i" . swiper-helm)
-  )
+  :bind ("M-i" . swiper-helm))
 
 (use-package org
   :bind (("C-c l" . org-store-link)
@@ -967,20 +1023,17 @@
 (use-package org2blog
   :config (setq org2blog/wp-blog-alist '(
                                          ("wp-lo2net" :url "https://wp-lo2net.rhcloud.com/xmlrpc.php"
-                                          :username "lo2net")
-                                         )))
+                                          :username "lo2net"))))
 
 ;; org-toc
-(use-package org-plus-contrib
+(use-package org
   :config (progn (require 'org-toc)
                  (if (eq system-type 'windows-nt)
                      (progn (require 'ox-s5)
-                       (setq org-s5-ui-url "file://d:/home/fangtao/MyEmacs/Extensions/org-S5/ui"
-                             org-s5-theme-file "default/slides.css"))
-                   )
+                       (setq org-s5-ui-url "file://d:/home/10034491/MyEmacs/Extensions/org-S5/ui"
+                             org-s5-theme-file "default/slides.css")))
                  ;; google I/O HTML5 slide
-                 (require 'ox-ioslide-helper)
-  ))
+                 (require 'ox-ioslide-helper)))
 
 ;; markdown
 (use-package markdown-mode+)
@@ -1013,8 +1066,7 @@
             (add-hook 'twittering-mode-hook
                       (lambda ()
                         (define-key twittering-mode-map (kbd "M-n") 'twittering-goto-next-uri)
-                        (define-key twittering-mode-map (kbd "M-p") 'twittering-goto-previous-uri)
-                        ))
+                        (define-key twittering-mode-map (kbd "M-p") 'twittering-goto-previous-uri)))
             ;;(setq twittering-debug-mode t)
             (setq twittering-use-master-password t)
             ;;(setq twittering-username "")
@@ -1022,8 +1074,7 @@
             (when (eq system-type 'windows-nt)
               (setq twittering-proxy-use t)
               (setq twittering-proxy-server "proxy.zte.com.cn")
-              (setq twittering-proxy-port 80)
-              )
+              (setq twittering-proxy-port 80))
             (setq twittering-icon-mode t)
             ;;(setq twittering-convert-fix-size 48)
             (setq twittering-use-icon-storage t)
@@ -1039,11 +1090,9 @@
                     ("related-to-twitter" . "$related-to(twitter)")))
             (setq twittering-initial-timeline-spec-string '(
                                                             "(:home+@)"
-                                                            "(:search/twittering mode/+:search/twmode/)"
-                                                            ))
+                                                            "(:search/twittering mode/+:search/twmode/)"))
             (setq twittering-status-format
-                  "%FOLD{%RT{%FACE[bold]{RT}}%i%s>>%r @%C{%Y-%m-%d %H:%M:%S} %@{}\n%FOLD[ ]{%T%RT{\nretweeted by %s @%C{%Y-%m-%d %H:%M:%S}}}}")
-            ))
+                  "%FOLD{%RT{%FACE[bold]{RT}}%i%s>>%r @%C{%Y-%m-%d %H:%M:%S} %@{}\n%FOLD[ ]{%T%RT{\nretweeted by %s @%C{%Y-%m-%d %H:%M:%S}}}}")))
 
 ;; weibo
 (use-package weibo
@@ -1075,6 +1124,10 @@
 (use-package lodgeit
   :config (setq lodgeit-pastebin-base "http://paste.openstack.org/"))
 
+;; pastery
+(use-package pastery
+  :config (setq pastery-api-key (plist-get (nth 0 (auth-source-search :host "pastery")) :api-key)))
+
 ;; diff-hl
 (use-package diff-hl
   :config (progn (global-diff-hl-mode)
@@ -1088,6 +1141,9 @@
                  (setq mweb-filename-extensions '("htm" "html"))
                  (multi-web-global-mode 1)))
 
+;; json-reformat
+(use-package json-reformat)
+
 ;; projectile
 (use-package projectile
   :config (progn (projectile-global-mode)
@@ -1098,13 +1154,13 @@
 ;; (use-package helm-projectile
 ;;   :config (progn (helm-projectile-on)
 ;;                  (setq projectile-switch-project-action 'helm-projectile)))
-;; perspective
-(use-package perspective
-  :config (progn (persp-mode)
-                 ;; perspectives-hash can't save in desktop, so..
-                 (set-frame-parameter nil 'desktop-dont-save t)))
-;; persp-projectile
-(use-package persp-projectile)
+;; ;; perspective
+;; (use-package perspective
+;;   :config (progn (persp-mode)
+;;                  ;; perspectives-hash can't save in desktop, so..
+;;                  (set-frame-parameter nil 'desktop-dont-save t)))
+;; ;; persp-projectile
+;; (use-package persp-projectile)
 
 ;; collaboration edit
 (use-package rudel
@@ -1120,13 +1176,14 @@
                  (add-hook 'prog-mode-hook 'emr-initialize)))
 
 ;; chinese-pyim
-(use-package chinese-pyim
-  :config (setq pyim-dicts '((:name "bigdict" :file "~/pyim-bigdict.txt" :coding utf-8-unix))
-                default-input-method "chinese-pyim"
-                pyim-use-tooltip nil))
-
-;; debbugs
-(use-package debbugs)
+;; (use-package chinese-pyim
+;;   :config (setq pyim-dicts '((:name "bigdict" :file "~/pyim-bigdict.txt" :coding utf-8-unix))
+;;                 default-input-method "chinese-pyim"
+;;                 pyim-use-tooltip nil))
+(use-package pyim)
+(use-package pyim-basedict
+  :config (progn (pyim-basedict-enable)
+                 (setq default-input-method "pyim")))
 
 ;; diminish
 (use-package diminish
@@ -1138,8 +1195,15 @@
                  (diminish 'which-key-mode)
                  (add-hook 'emacs-lisp-mode-hook
                            (lambda ()
-                             (setq mode-name "ELISP")))
-                 ))
+                             (setq mode-name "ELISP")))))
+
+;; debbugs
+(use-package debbugs)
+
+;; ietf rfc
+(use-package irfc
+  :init (setq irfc-assoc-mode t))
+
 ;;------------------------------------------------------------------------------
 
 ;;------------------------------------------------------------------------------
@@ -1147,35 +1211,42 @@
 ;; T3 development settings
 ;;
 (when (eq system-type 'windows-nt)
-  (when nil
-    (setenv "PATH" (concat "C:/Program Files/Microsoft Visual Studio/VC98/bin" path-separator (getenv "PATH")))
-    (setenv "PATH" (concat "c:/program files/microsoft visual studio/common/msdev98/bin" path-separator (getenv "PATH")))
-    (setenv "PATH" (concat "C:/Program Files/Microsoft Visual Studio/Common/IDE/IDE98" path-separator (getenv "PATH")))
-    (setenv "INCLUDE" (concat "c:/program files/microsoft visual studio/vc98/include" path-separator (getenv "INCLUDE")))
-    (setenv "LIB" (concat "c:/program files/microsoft visual studio/vc98/lib" path-separator (getenv "LIB")))
-    )
-  (when t
-    (setenv "PATH" (concat "D:/VS2010/bin" path-separator (getenv "PATH")))
-    (setenv "INCLUDE" (concat "d:/VS2010/include" path-separator (getenv "INCLUDE")))
-    (setenv "INCLUDE" (concat "d:/VS2010/platformsdk/include" path-separator (getenv "INCLUDE")))
-    (setenv "LIB" (concat "d:/VS2010/lib" path-separator (getenv "LIB")))
-    (setenv "LIB" (concat "d:/VS2010/platformsdk/lib" path-separator (getenv "LIB")))
-    )
+  (progn
+    (setenv "WIN64" "1")
+    (setenv "DEVTOOLS_ROOT" "D:\\U31_devtools\\devtools_x64")
+    (when (and (not load-in-progress)
+               (yes-or-no-p "Setting devtools to X86?"))
+      (setenv "WIN64")
+      (setenv "DEVTOOLS_ROOT" "D:\\U31_devtools\\devtools_x86"))
+    (setenv "POM_VERSION" "2.0")
+    (let ((devtools (getenv "DEVTOOLS_ROOT")))
+      (setenv "PATH" (concat devtools "\\vc\\bin" path-separator (getenv "PATH")))
+      (setenv "INCLUDE" (concat devtools "\\vc\\include" path-separator (getenv "INCLUDE")))
+      (setenv "LIB" (concat devtools "\\vc\\lib" path-separator
+                            devtools "\\vc\\PlatformSDK\\lib" path-separator (getenv "LIB")))
+      ;; maven
+      (setenv "PATH" (concat "C:\\Program Files\\JetBrains\\IntelliJ IDEA 2017.3\\plugins\\maven\\lib\\maven3\\bin" path-separator (getenv "PATH")))
+      ;; java
+      ;; (setenv "PATH" (concat devtools "\\..\\jdk\\bin" path-separator (getenv "PATH")))
+      ;; (setenv "JAVA_HOME" (concat devtools "\\..\\jdk"))
+      ;; (setenv "classpath" (concat devtools "\\..\\jdk\\\lib\\dt.jar:" devtools "\\..\\jdk\\lib\\tools.jar"))
+      (setenv "PATH" (concat "C:\\Program Files\\Java\\jdk1.8.0_112\\bin" path-separator (getenv "PATH")))
+      (setenv "JAVA_HOME" "C:\\Program Files\\Java\\jdk1.8.0_112")
 
-  (setenv "EDITOR" "emacsclient")
-  ;; maven
-  (setenv "PATH" (concat "D:/U31_devtools/maven/bin" path-separator (getenv "PATH")))
-  (setenv "DEVTOOLS_ROOT" "D:/U31_devtools/devtools")
-  (setenv "JAVA_HOME" "D:/U31_devtools/jdk")
+      ;; haskell ghc
+      (setenv "PATH" (concat "C:\\Users\\10034491\\AppData\\Local\\Programs\\stack\\x86_64-windows\\ghc-8.0.2\\bin" path-separator (getenv "PATH")))
+      
+      ;; used by emacs etags
+      (setq exec-path (split-string (getenv "PATH") path-separator))))
+
+  (setenv "EDITOR" "d:/emacs-bin/bin/emacsclientw.exe -a runemacs.exe")
   ;; ssh-askpass
-  (setenv "SSH_ASKPASS" "d:/home/fangtao/tools/win_ssh_askpass/win-ssh-askpass.exe")
+  (setenv "SSH_ASKPASS" "d:/home/10034491/tools/win_ssh_askpass/win-ssh-askpass.exe")
   ;; cygwin
   (setenv "CYGWIN" "nodosfilewarning")
   ;; eshell execute cmds
-  (setq eshell-path-env (getenv "PATH"))
-  ;; used by emacs etags
-  (setq exec-path (split-string (getenv "PATH") path-separator))
-
+  (add-hook 'eshell-mode-hook (lambda ()
+                                (setq eshell-path-env (getenv "PATH"))))
   )
 
 ;;------------------------------------------------------------------------------
