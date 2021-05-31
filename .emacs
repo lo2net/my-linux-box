@@ -570,8 +570,8 @@
   :config (setq smooth-scroll-margin 3))
 
 ;; yascroll
-;;(use-package yascroll
-;;  :config (global-yascroll-bar-mode))
+(use-package yascroll
+  :config (global-yascroll-bar-mode))
 
 ;; back button
 (use-package back-button
@@ -579,7 +579,6 @@
   :config (back-button-mode 1))
 
 ;; dired+.el
-(use-package dired+)
 (use-package dired-filter)
 
 ;; color-theme
@@ -714,26 +713,26 @@
                             ("C-c C-e" 'eval-sexp-fu-eval-sexp-inner-sexp))))
 
 ;; FIXME TODO BUG KLUDGE
-;;(use-package fic-mode
-;;  :diminish fic-mode
-;;  :config (add-hook 'prog-mode-hook 'fic-mode))
+(use-package fic-mode
+  :diminish fic-mode
+  :config (add-hook 'prog-mode-hook 'fic-mode))
 
 ;; haskell
-(use-package ghc
-  :config (progn
-            ;;(setq ghc-interactive-command "ghci")
-            (add-hook 'haskell-mode-hook (lambda ()
-                                           (ghc-init)
-                                           (flycheck-mode)
-                                           (setq haskell-interactive-popup-errors nil)
-                                           (turn-on-haskell-doc-mode)
-                                           ;;(turn-on-haskell-indentation)
-                                           (interactive-haskell-mode)))))
-(use-package ghci-completion)
+;; (use-package ghc
+;;   :config (progn
+;;             ;;(setq ghc-interactive-command "ghci")
+;;             (add-hook 'haskell-mode-hook (lambda ()
+;;                                            (ghc-init)
+;;                                            (flycheck-mode)
+;;                                            (setq haskell-interactive-popup-errors nil)
+;;                                            (turn-on-haskell-doc-mode)
+;;                                            ;;(turn-on-haskell-indentation)
+;;                                            (interactive-haskell-mode)))))
+;; (use-package ghci-completion)
 
-;; ac
-(use-package ac-haskell-process
-  :config (add-hook 'interactive-haskell-mode-hook 'ac-haskell-process-setup))
+;; ;; ac
+;; (use-package ac-haskell-process
+;;   :config (add-hook 'interactive-haskell-mode-hook 'ac-haskell-process-setup))
 
 ;; shm
 (use-package shm
@@ -742,16 +741,8 @@
   (set-face-background 'shm-current-face "dark slate blue")
   (set-face-background 'shm-quarantine-face "red"))
 
-;; hindent
-(use-package hindent
-  :config (add-hook 'haskell-mode-hook 'hindent-mode))
-
 ;; flycheck-haskell
 (use-package flycheck-haskell)
-
-;; intero
-;; (use-package intero
-;;   :config (add-hook 'haskell-mode-hook 'intero-mode))
 
 ;; yasnippet
 (use-package yasnippet
@@ -1046,9 +1037,6 @@
 ;; graphviz-mode
 (use-package graphviz-dot-mode)
 
-;; bookmark+
-(use-package bookmark+)
-
 ;; column-mark
 (use-package column-marker)
 
@@ -1146,10 +1134,9 @@
 
 ;; projectile
 (use-package projectile
-  :config (progn (projectile-global-mode)
-                 (setq projectile-enable-caching t)
+  :config (progn (setq projectile-enable-caching t)
                  (setq projectile-indexing-method 'alien)
-                 (setq projectile-completion-system 'grizzl)))
+                 (setq projectile-completion-system 'helm)))
 ;; ;; helm-projectile
 ;; (use-package helm-projectile
 ;;   :config (progn (helm-projectile-on)
